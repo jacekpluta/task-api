@@ -1,6 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
-import { Task } from '../tasks/task.entity';
+import { ExtractJwt } from 'passport-jwt';
 
 dotenv.config();
 
@@ -49,9 +49,31 @@ class ConfigService {
       ssl: this.isProduction(),
     };
   }
+
+  public getJWTConfig() {
+    return {
+      secret: this.getValue('JWT_SECRET'),
+      signOption: { expiresIn: 3600 },
+    };
+  }
+
+  public getJWTStrategyConfig() {
+    return {
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: this.getValue('JWT_SECRET'),
+    };
+  }
 }
 
-const configService = new ConfigService(process.env).ensureValues([
+const configServiceJWT = new ConfigService(process.env).ensureValues([
+  'JWT_SECRET',
+]);
+
+const configServiceJWTStrategy = new ConfigService(process.env).ensureValues([
+  'JWT_SECRET',
+]);
+
+const configServiceTypeOrm = new ConfigService(process.env).ensureValues([
   'POSTGRES_HOST',
   'POSTGRES_PORT',
   'POSTGRES_USER',
@@ -59,4 +81,4 @@ const configService = new ConfigService(process.env).ensureValues([
   'POSTGRES_DATABASE',
 ]);
 
-export { configService };
+export { configServiceTypeOrm, configServiceJWT, configServiceJWTStrategy };
