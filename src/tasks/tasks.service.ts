@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/auth/user.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 import { TaskStatus } from './task-status.enum';
@@ -13,8 +14,10 @@ export class TasksService {
     private taskRepository: TaskRepository,
   ) {}
 
-  async getTaskById(id: number): Promise<Task> {
-    const taskFound = await this.taskRepository.findOne(id);
+  async getTaskById(id: number, user: User): Promise<Task> {
+    const taskFound = await this.taskRepository.findOne({
+      where: { userId: user.id, id },
+    });
 
     if (!taskFound) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
@@ -22,26 +25,29 @@ export class TasksService {
     return taskFound;
   }
 
-  createTask(createTaskDto: CreateTaskDto): Promise<Task> {
-    return this.taskRepository.createTask(createTaskDto);
+  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
+    return this.taskRepository.createTask(createTaskDto, user);
   }
 
-  async getTasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
-    const tasks = await this.taskRepository.getTasks(filterDto);
+  async getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Task[]> {
+    const tasks = await this.taskRepository.getTasks(filterDto, user);
 
     return tasks;
   }
 
-  async changeTaskStatus(id: number, status: TaskStatus): Promise<Task> {
-    const task = await this.getTaskById(id);
+  async changeTaskStatus(id: number, status: TaskStatus, user): Promise<Task> {
+    const task = await this.getTaskById(id, user);
     task.status = status;
 
     await task.save();
     return task;
   }
 
-  async deleteTaskById(id: number): Promise<string> {
-    const result = await this.taskRepository.delete(id);
+  async deleteTaskById(id: number, user: User): Promise<string> {
+    const result = await this.taskRepository.delete({
+      userId: user.id,
+      id: id,
+    });
 
     if (result.affected === 0) {
       throw new NotFoundException(`Task with ID "${id}" not found`);

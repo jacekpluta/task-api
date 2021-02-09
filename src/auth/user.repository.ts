@@ -38,17 +38,17 @@ export class UserRepository extends Repository<User> {
 
   async validateUserPassword(
     authCredentialsDto: AuthCredentialsDto,
-  ): Promise<JwtPayload> {
-    const { username, password, email } = authCredentialsDto;
+  ): Promise<any> {
+    const { password, email } = authCredentialsDto;
 
-    const userNameEmail = { username: username, email: email };
+    const userEmail = { email: email };
 
     const user = await this.findOne({
-      where: userNameEmail,
+      where: userEmail,
     });
 
     if (user && (await user.ValidatePassword(password))) {
-      return userNameEmail;
+      return userEmail;
     }
 
     return null;

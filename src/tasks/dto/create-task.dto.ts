@@ -7,6 +7,6 @@ export class CreateTaskDto {
   @Length(0, 99)
   description: string;
 
-  @IsDate()
+  // @IsDate()
   createDate: Date;
 }

@@ -1,0 +1,6 @@
+db:
+  type: 'postgres'
+  synchronize: false
+
+server:
+  port: 3000
